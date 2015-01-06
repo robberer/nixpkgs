@@ -1,7 +1,8 @@
 { stdenv, fetchurl, composableDerivation, autoconf, automake, flex, bison
 , apacheHttpd, mysql, libxml2, readline, zlib, curl, gd, postgresql, gettext
 , openssl, pkgconfig, sqlite, config, libiconv, libjpeg, libpng, freetype
-, libxslt, libmcrypt, bzip2, icu, openldap, cyrus_sasl, libmhash, freetds }:
+, libxslt, libmcrypt, bzip2, icu, openldap, cyrus_sasl, libmhash, freetds
+, net_snmp }:
 
 let
   libmcryptOverride = libmcrypt.override { disablePosixThreads = true; };
@@ -189,6 +190,11 @@ composableDerivation.composableDerivation {} ( fixed : let inherit (fixed.fixed)
         configureFlags = ["--enable-maintainer-zts"];
       };
 
+      snmp = {
+        configureFlags = ["--with-snmp=${net_snmp}"];
+        buildInputs = [net_snmp];
+      };
+
       /*
          php is build within this derivation in order to add the xdebug lines to the php.ini.
          So both Apache and command line php both use xdebug without having to configure anything.
@@ -229,6 +235,7 @@ composableDerivation.composableDerivation {} ( fixed : let inherit (fixed.fixed)
     fpmSupport = config.php.fpm or true;
     mssqlSupport = config.php.mssql or (!stdenv.isDarwin);
     ztsSupport = config.php.zts or false;
+    snmpSupport = config.php.snmp or true;
   };
 
   configurePhase = ''
